@@ -10,4 +10,6 @@ Unquarantine files or folders via the [Universal Action](https://www.alfredapp.c
 
 ![Removing quarantine from Inkscape](Workflow/images/about/ua.png)
 
-Alternatively, search your quarantined apps in `/Applications` via the `rq` keyword. <kbd>↩&#xFE0E;</kbd> to remove the quarantine.
+Alternatively, search for quarantined apps via the `rq` keyword. <kbd>↩&#xFE0E;</kbd> to remove the quarantine.
+
+![Listing quarantined apps](Workflow/images/about/rq.png)

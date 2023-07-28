@@ -254,7 +254,7 @@ Alternatively, search for quarantined apps via the `rq` keyword. &lt;kbd&gt;↩&
 		</dict>
 	</array>
 	<key>version</key>
-	<string>2023.1</string>
+	<string>2023.2</string>
 	<key>webaddress</key>
 	<string>https://github.com/vitorgalvao/remove-quarantine-workflow/</string>
 </dict>
