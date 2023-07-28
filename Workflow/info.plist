@@ -51,17 +51,13 @@
 				<key>escaping</key>
 				<integer>102</integer>
 				<key>script</key>
-				<string>IFS=$'\t'
-
-for app in ${@}; do
-  xattr -d com.apple.quarantine "${app}"
-done</string>
+				<string>xattr -d com.apple.quarantine "${@}"</string>
 				<key>scriptargtype</key>
 				<integer>1</integer>
 				<key>scriptfile</key>
 				<string></string>
 				<key>type</key>
-				<integer>5</integer>
+				<integer>11</integer>
 			</dict>
 			<key>type</key>
 			<string>alfred.workflow.action.script</string>
@@ -96,33 +92,52 @@ done</string>
 				<key>queuemode</key>
 				<integer>1</integer>
 				<key>runningsubtext</key>
-				<string>Finding quaratined apps in /Applications…</string>
+				<string>Finding quaratined apps…</string>
 				<key>script</key>
-				<string>app_list=()
+				<string># Helpers
+function app_as_json {
+  osascript -l JavaScript -e 'function run(argv) { return JSON.stringify({
+    title: $(argv[0]).stringByDeletingPathExtension.lastPathComponent.js,
+    subtitle: argv[0],
+    type: "file",
+    icon: { type: "fileicon", path: argv[0] },
+    arg: argv[0]
+  })}' "${1}"
+}
 
-for app in /Applications/*; do
-  if xattr -p 'com.apple.quarantine' "${app}" &amp;&gt; /dev/null; then
-    app_list+=("${app}")
-  fi
+function sign_check {
+  /usr/sbin/spctl --assess --type install
+}
+
+# Grab all apps as reported by Spotlight
+readonly all_apps=("${(@f)$(/usr/bin/mdfind "kMDItemContentTypeTree == 'com.apple.application-bundle'")}")
+
+# Separate quarantined apps
+for app in "${all_apps[@]}"
+do
+  # Skip unquarantined apps
+  xattr -p 'com.apple.quarantine' "${app}" &amp;&gt; /dev/null || continue
+  # Skip signed and notarised apps, if option is enabled
+  [[ "${ignore_signed}" -eq 1 ]] &amp;&amp; /usr/sbin/spctl --assess --type install "${app}" &amp;&amp; continue
+  # Add JSON item
+  json_items+=("$(app_as_json "${app}")")
 done
 
-if [[ "${#app_list[@]}" -eq 0 ]]; then
-  echo "&lt;?xml version='1.0'?&gt;&lt;items&gt;
-    &lt;item valid='no'&gt;
-    &lt;title&gt;You have no quarantined applications at the root of /Applications&lt;/title&gt;
-    &lt;subtitle&gt;Use this workflow’s File Action if you need more granularity&lt;/subtitle&gt;
-    &lt;/item&gt;
-  &lt;/items&gt;"
-else
-  echo "&lt;?xml version='1.0'?&gt;&lt;items&gt;"
-  for app in "${app_list[@]}"; do
-  	echo "&lt;item arg='${app}' type='file:skipcheck' valid='yes'&gt;"
-  	echo "&lt;title&gt;$(basename "${app}")&lt;/title&gt;"
-  	echo "&lt;icon type='fileicon'&gt;${app}&lt;/icon&gt;"
-  	echo "&lt;/item&gt;"
-  done
-  echo "&lt;/items&gt;"
-fi</string>
+# Exit early if nothing to do
+if [[ "${#json_items[@]}" -eq 0 ]]
+then
+  printf '{ "items": [{
+    "title": "No quarantined applications found",
+    "subtitle": "Use this workflow’s File Action if you need more granularity"
+  }]}'
+
+  exit 0
+fi
+
+# List quarantined apps
+printf '{ "items": ['
+printf '%s,' "${json_items[@]}" | sed 's/,$//'
+printf ']}'</string>
 				<key>scriptargtype</key>
 				<integer>1</integer>
 				<key>scriptfile</key>
@@ -132,7 +147,7 @@ fi</string>
 				<key>title</key>
 				<string>Remove Quarantine</string>
 				<key>type</key>
-				<integer>0</integer>
+				<integer>11</integer>
 				<key>withspace</key>
 				<true/>
 			</dict>
@@ -168,7 +183,9 @@ Unquarantine files or folders via the [Universal Action](https://www.alfredapp.c
 
 ![Removing quarantine from Inkscape](images/about/ua.png)
 
-Alternatively, search your quarantined apps in `/Applications` via the `rq` keyword. &lt;kbd&gt;↩&lt;/kbd&gt; to remove the quarantine.</string>
+Alternatively, search for quarantined apps via the `rq` keyword. &lt;kbd&gt;↩&lt;/kbd&gt; to remove the quarantine.
+
+![Listing quarantined apps](images/about/rq.png)</string>
 	<key>uidata</key>
 	<dict>
 		<key>57E5FCE3-A396-4994-B57D-D2645AFE5445</key>
@@ -215,6 +232,25 @@ Alternatively, search your quarantined apps in `/Applications` via the `rq` keyw
 			<string>textfield</string>
 			<key>variable</key>
 			<string>search_apps_keyword</string>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>default</key>
+				<false/>
+				<key>required</key>
+				<false/>
+				<key>text</key>
+				<string>Do not list signed and notarised apps when searching</string>
+			</dict>
+			<key>description</key>
+			<string>Ignoring signed and notarised apps gives more relevant results but makes search slower.</string>
+			<key>label</key>
+			<string>Ignore Notarised</string>
+			<key>type</key>
+			<string>checkbox</string>
+			<key>variable</key>
+			<string>ignore_signed</string>
 		</dict>
 	</array>
 	<key>version</key>
