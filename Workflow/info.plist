@@ -110,7 +110,8 @@ function sign_check {
 }
 
 # Grab all apps as reported by Spotlight
-readonly all_apps=("${(@f)$(/usr/bin/mdfind "kMDItemContentTypeTree == 'com.apple.application-bundle'")}")
+[[ "${only_root_applications}" -eq 1 ]] &amp;&amp; readonly filter=(-onlyin '/Applications')
+readonly all_apps=("${(@f)$(/usr/bin/mdfind "${filter[@]}" "kMDItemContentTypeTree == 'com.apple.application-bundle'")}")
 
 # Separate quarantined apps
 for app in "${all_apps[@]}"
@@ -145,7 +146,7 @@ printf ']}'</string>
 				<key>subtext</key>
 				<string>Remove the quarantine attribute from your apps</string>
 				<key>title</key>
-				<string>Remove Quarantine</string>
+				<string>{const:alfred_workflow_name}</string>
 				<key>type</key>
 				<integer>11</integer>
 				<key>withspace</key>
@@ -227,7 +228,7 @@ Alternatively, search for quarantined apps via the `rq` keyword. &lt;kbd&gt;↩&
 			<key>description</key>
 			<string></string>
 			<key>label</key>
-			<string>Search Apps Keyword</string>
+			<string>Search Keyword</string>
 			<key>type</key>
 			<string>textfield</string>
 			<key>variable</key>
@@ -241,12 +242,31 @@ Alternatively, search for quarantined apps via the `rq` keyword. &lt;kbd&gt;↩&
 				<key>required</key>
 				<false/>
 				<key>text</key>
-				<string>Do not list signed and notarised apps when searching</string>
+				<string>Only show apps in /Applications</string>
 			</dict>
 			<key>description</key>
-			<string>Ignoring signed and notarised apps gives more relevant results but makes search slower.</string>
+			<string></string>
 			<key>label</key>
-			<string>Ignore Notarised</string>
+			<string>Filters</string>
+			<key>type</key>
+			<string>checkbox</string>
+			<key>variable</key>
+			<string>only_root_applications</string>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>default</key>
+				<false/>
+				<key>required</key>
+				<false/>
+				<key>text</key>
+				<string>Ignore signed and notarised apps</string>
+			</dict>
+			<key>description</key>
+			<string>Ignoring apps gives more relevant results but makes search slower.</string>
+			<key>label</key>
+			<string></string>
 			<key>type</key>
 			<string>checkbox</string>
 			<key>variable</key>
