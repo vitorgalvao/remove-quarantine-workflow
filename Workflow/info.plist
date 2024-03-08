@@ -116,7 +116,6 @@ readonly all_apps=("${(@f)$(/usr/bin/mdfind "${filter[@]}" "kMDItemContentTypeTr
 # Separate quarantined apps
 for app in "${all_apps[@]}"
 do
-  echo "Checking ${app}…" &gt;&gt; "${HOME}/Desktop/verifying_apps.txt"
   # Skip unquarantined apps
   xattr -p 'com.apple.quarantine' "${app}" &amp;&gt; /dev/null || continue
   # Skip signed and notarised apps, if option is enabled
