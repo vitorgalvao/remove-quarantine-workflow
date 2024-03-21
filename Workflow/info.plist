@@ -51,7 +51,7 @@
 				<key>escaping</key>
 				<integer>102</integer>
 				<key>script</key>
-				<string>xattr -d com.apple.quarantine "${@}"</string>
+				<string>/usr/bin/xattr -d com.apple.quarantine "${@}"</string>
 				<key>scriptargtype</key>
 				<integer>1</integer>
 				<key>scriptfile</key>
@@ -96,17 +96,13 @@
 				<key>script</key>
 				<string># Helpers
 function app_as_json {
-  osascript -l JavaScript -e 'function run(argv) { return JSON.stringify({
+  /usr/bin/osascript -l JavaScript -e 'function run(argv) { return JSON.stringify({
     title: $(argv[0]).stringByDeletingPathExtension.lastPathComponent.js,
     subtitle: argv[0],
     type: "file",
     icon: { type: "fileicon", path: argv[0] },
     arg: argv[0]
   })}' "${1}"
-}
-
-function sign_check {
-  /usr/sbin/spctl --assess --type install
 }
 
 # Grab all apps as reported by Spotlight
@@ -117,7 +113,7 @@ readonly all_apps=("${(@f)$(/usr/bin/mdfind "${filter[@]}" "kMDItemContentTypeTr
 for app in "${all_apps[@]}"
 do
   # Skip unquarantined apps
-  xattr -p 'com.apple.quarantine' "${app}" &amp;&gt; /dev/null || continue
+  /usr/bin/xattr -p 'com.apple.quarantine' "${app}" &amp;&gt; /dev/null || continue
   # Skip signed and notarised apps, if option is enabled
   [[ "${ignore_signed}" -eq 1 ]] &amp;&amp; /usr/sbin/spctl --assess --type install "${app}" &amp;&amp; continue
   # Add JSON item
