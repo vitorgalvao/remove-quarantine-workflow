@@ -124,8 +124,8 @@ done
 if [[ "${#json_items[@]}" -eq 0 ]]
 then
   printf '{ "items": [{
-    "title": "No quarantined applications found",
-    "subtitle": "Use this workflow’s File Action if you need more granularity"
+    "title": "No Quarantined Applications Found",
+    "subtitle": "Use the Universal Action to act on any path"
   }]}'
 
   exit 0
